@@ -38,7 +38,7 @@ def download():
         f = open('issues', 'r')
     except IOError:
         print "OH SHIT NO DOWNload"
-        exit(0)
+        return None
         #return
 
     nextline = False
@@ -61,10 +61,13 @@ def download():
     return saveline
 
 
-
-def makeDecision(saveline):
+# returns True when locked
+# returns NONE for error
+# accepts previous value in run
+def makeDecision(saveline, prevlocked):
     nickhome = None
     benhome = None
+    reslocked = False
 
 
     # loop Ben
@@ -88,6 +91,7 @@ def makeDecision(saveline):
 
     if benhome is None or nickhome is None:
         print "PANICK, something went wrong"
+        return None
 
     print "Ben is home", benhome
     print "Nick is home", nickhome
@@ -97,15 +101,51 @@ def makeDecision(saveline):
         curl_unlock()
         notify_unlock()
         print "done with notify"
+        reslocked = False  # return false for not locked
     else:
         print "LOCKING DOOR"
         curl_lock()
         notify_lock()
         print "done with notify"
+        reslocked = True # return true for locked
+
+    return reslocked
 
 
-
+sleep_seconds = 8
 print "Start"
-saveoutside = download()
-makeDecision(saveoutside)
-print "done"
+# lastrun = reslocked  # start assuming it's open
+
+curl_unlock()
+print "*",
+time.sleep(5)
+curl_lock()  # locked or true
+print "*",
+time.sleep(5)
+curl_unlock()# unlocked or false
+print "*",
+time.sleep(5)
+lastrun = False
+
+
+print ""
+print "done with init sequence"
+
+while True:
+    saveoutside = download()
+
+    if saveoutside is None:
+        print "problem with downloader"
+        time.sleep(sleep_seconds)  # failbot sleep on own and try again
+        continue
+
+    thisrun = makeDecision(saveoutside, lastrun)
+
+    # update
+    lastrun = thisrun
+    
+    # final global sleep
+    time.sleep(sleep_seconds)
+
+
+print "NEVER REACHES THIS"
