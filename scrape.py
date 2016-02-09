@@ -3,19 +3,27 @@ import sys
 import time
 
 
-def curl_lock():
+def curl_lock(dryrun=False):
+    if dryrun:
+        return
     key = os.environ['IFFFF']
     os.system('curl -X POST https://maker.ifttt.com/trigger/lockdoor/with/key/'+key)
 
-def curl_unlock():
+def curl_unlock(dryrun=False):
+    if dryrun:
+        return
     key = os.environ['IFFFF']
     os.system('curl -X POST https://maker.ifttt.com/trigger/fart/with/key/'+key)
 
-def notify_lock():
+def notify_lock(dryrun=False):
+    if dryrun:
+        return
     key = os.environ['IFFFN']
     os.system('curl -X POST https://maker.ifttt.com/trigger/notifylocked/with/key/'+key)
 
-def notify_unlock():
+def notify_unlock(dryrun=False):
+    if dryrun:
+        return
     key = os.environ['IFFFN']
     os.system('curl -X POST https://maker.ifttt.com/trigger/notifyunlocked/with/key/'+key)	
 
@@ -64,7 +72,7 @@ def download():
 # returns True when locked
 # returns NONE for error
 # accepts previous value in run
-def makeDecision(saveline, prevlocked):
+def makeDecision(saveline, prevlocked, dryrun=False):
     nickhome = None
     benhome = None
     reslocked = False
@@ -96,16 +104,24 @@ def makeDecision(saveline, prevlocked):
     print "Ben is home", benhome
     print "Nick is home", nickhome
 
-    if( benhome or nickhome ):
+    # hand wave,
+    newlockstate = benhome or nickhome
+
+    # should notify
+    shouldnotify = newlockstate != prevlocked
+
+    if( newlockstate ):
         print "UNLOCKING DOOR"
-        curl_unlock()
-        notify_unlock()
+        curl_unlock(dryrun)
+        if shouldnotify:
+            notify_unlock(dryrun)
         print "done with notify"
         reslocked = False  # return false for not locked
     else:
         print "LOCKING DOOR"
-        curl_lock()
-        notify_lock()
+        curl_lock(dryrun)
+        if shouldnotify:
+            notify_lock(dryrun)
         print "done with notify"
         reslocked = True # return true for locked
 
