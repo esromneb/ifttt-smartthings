@@ -6,7 +6,10 @@ import time
 def curl_lock(dryrun=False):
     if dryrun:
         return
-    key = os.environ['IFFFF']
+    try:
+        key = os.environ['IFFFF']
+    except:
+        key = ""
     os.system('curl -X POST https://maker.ifttt.com/trigger/lockdoor/with/key/'+key)
 
 def curl_unlock(dryrun=False):
@@ -59,13 +62,20 @@ def download():
             saveline.append(x)
             nextline = False
 
-        # print x,
-
         if 'issue-title-link' in x:
             nextline = True
 
+    f.close() # ALWASYS CLOSE THIS
 
     print "found", len(saveline), "events"
+
+    cute = ""
+    for x in saveline:
+        cute += x.strip() + ", "
+
+    print cute
+
+    # print ''.join(saveline).split('\n')
     return saveline
 
 
@@ -77,24 +87,33 @@ def makeDecision(saveline, prevlocked, dryrun=False):
     benhome = None
     reslocked = False
 
+    found = []
 
     # loop Ben
     for x in saveline:
-        if "aa" in x:
+        strip = x.strip()
+        if "aa" == strip:
             benhome = True
+            found.append(strip)
             break
-        if "ab" in x:
+        if "ab" == strip:
             benhome = False
+            found.append(strip)
             break
 
     # loop
     for x in saveline:
-        # print x
-        if "bb" in x:
+        strip = x.strip()
+        if "ba" == strip:
             nickhome = True
+            found.append(strip)
             break
-        if "ba" in x:
+        if "bb" == strip:
             nickhome = False
+            found.append(strip)
+            break
+
+    print "deciding using", found
 
 
     if benhome is None or nickhome is None:
@@ -105,42 +124,43 @@ def makeDecision(saveline, prevlocked, dryrun=False):
     print "Nick is home", nickhome
 
     # hand wave,
-    newlockstate = benhome or nickhome
+    newlockstate = not (benhome or nickhome)
 
     # should notify
     shouldnotify = newlockstate != prevlocked
 
     if( newlockstate ):
-        print "UNLOCKING DOOR"
-        curl_unlock(dryrun)
-        if shouldnotify:
-            notify_unlock(dryrun)
-        print "done with notify"
-        reslocked = False  # return false for not locked
-    else:
         print "LOCKING DOOR"
         curl_lock(dryrun)
         if shouldnotify:
             notify_lock(dryrun)
         print "done with notify"
         reslocked = True # return true for locked
+    else:
+        print "UNLOCKING DOOR"
+        curl_unlock(dryrun)
+        if shouldnotify:
+            notify_unlock(dryrun)
+        print "done with notify"
+        reslocked = False  # return false for not locked
 
     return reslocked
 
 
-sleep_seconds = 8
+sleep_seconds = 45
 print "Start"
 # lastrun = reslocked  # start assuming it's open
 
-curl_unlock()
-print "*",
-time.sleep(5)
+
+# curl_unlock()
+# print "*",
+# time.sleep(5)
 curl_lock()  # locked or true
 print "*",
-time.sleep(5)
-curl_unlock()# unlocked or false
-print "*",
-time.sleep(5)
+# time.sleep(5)
+# curl_unlock()# unlocked or false
+# print "*",
+# time.sleep(5)
 lastrun = False
 
 
@@ -159,6 +179,9 @@ while True:
 
     # update
     lastrun = thisrun
+
+    # delete files
+    delete_files()
     
     # final global sleep
     time.sleep(sleep_seconds)
