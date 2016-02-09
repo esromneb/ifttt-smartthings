@@ -4,10 +4,12 @@ import time
 
 
 def curl_lock():
-    os.system('curl -X POST https://maker.ifttt.com/trigger/lockdoor/with/key/')
+    key = os.environ['IFFFF']
+    os.system('curl -X POST https://maker.ifttt.com/trigger/lockdoor/with/key/'+key)
 
 def curl_unlock():
-    os.system('curl -X POST https://maker.ifttt.com/trigger/fart/with/key/')
+    key = os.environ['IFFFF']
+    os.system('curl -X POST https://maker.ifttt.com/trigger/fart/with/key/'+key)
 
 path = ['issues', 'issues.1', 'issues.2', 'issues.3']
 for delme in path:
