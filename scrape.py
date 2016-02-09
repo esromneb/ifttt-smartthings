@@ -11,6 +11,14 @@ def curl_unlock():
     key = os.environ['IFFFF']
     os.system('curl -X POST https://maker.ifttt.com/trigger/fart/with/key/'+key)
 
+def notify_lock():
+    key = os.environ['IFFFN']
+    os.system('curl -X POST https://maker.ifttt.com/trigger/notifylocked/with/key/'+key)
+
+def notify_unlock():
+    key = os.environ['IFFFN']
+    os.system('curl -X POST https://maker.ifttt.com/trigger/notifyunlocked/with/key/'+key)	
+
 def delete_files():
     path = ['issues', 'issues.1', 'issues.2', 'issues.3']
     for delme in path:
@@ -85,11 +93,15 @@ def makeDecision(saveline):
     print "Nick is home", nickhome
 
     if( benhome or nickhome ):
-        print "LOCKING DOOR"
-        curl_unlock()
-    else:
         print "UNLOCKING DOOR"
+        curl_unlock()
+        notify_unlock()
+        print "done with notify"
+    else:
+        print "LOCKING DOOR"
         curl_lock()
+        notify_lock()
+        print "done with notify"
 
 
 
