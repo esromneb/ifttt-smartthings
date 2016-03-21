@@ -8,7 +8,7 @@ def curl_dash1(dryrun=False):
     if dryrun:
         return
     try:
-        key = os.environ['IFFFF']
+        key = os.environ['IFFFN']
     except:
         key = ""
     os.system('curl -X POST https://maker.ifttt.com/trigger/dash1/with/key/'+key)
